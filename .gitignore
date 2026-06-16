@@ -1,0 +1,23 @@
+# Build outputs
+bin/
+obj/
+out/
+publish/
+artifacts/
+
+# Local tools and third-party binaries
+tools/
+
+# Runtime logs and local cleanup output
+*.log
+uninstall-logs/
+SafeDiskCleanup-*.txt
+
+# PowerShell and editor noise
+*.ps1xml
+.vs/
+.vscode/
+
+# OS noise
+Thumbs.db
+Desktop.ini
