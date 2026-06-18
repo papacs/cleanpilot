@@ -37,6 +37,11 @@ class QtUiContractTests(unittest.TestCase):
         self.assertIn("CleanPilot.exe", build_script)
         self.assertIn("SafeDiskCleanup.ps1", build_script)
 
+    def test_app_uses_pyinstaller_resource_root(self):
+        source = Path("src/cleanpilot_qt/app.py").read_text(encoding="utf-8")
+
+        self.assertIn("_MEIPASS", source)
+
 
 if __name__ == "__main__":
     unittest.main()

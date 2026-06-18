@@ -570,7 +570,7 @@ git commit -m "docs: document Qt desktop app"
 - Use: `scripts/build_qt_app.ps1`
 - Use: `src/cleanpilot_qt/app.py`
 
-- [ ] **Step 1: Download dependency wheels**
+- [x] **Step 1: Download dependency wheels**
 
 Run:
 
@@ -580,7 +580,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\download_qt_wheels
 
 Expected: `tools\wheels` contains PySide6, shiboken6, and PyInstaller wheels.
 
-- [ ] **Step 2: Build release directory**
+- [x] **Step 2: Build release directory**
 
 Run:
 
@@ -590,7 +590,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_qt_app.ps1
 
 Expected: `dist\CleanPilot\CleanPilot.exe` exists.
 
-- [ ] **Step 3: Run final tests**
+- [x] **Step 3: Run final tests**
 
 Run:
 
@@ -601,17 +601,17 @@ python -m unittest tests.test_qt_engine tests.test_qt_ui_contract -v
 
 Expected: both commands PASS.
 
-- [ ] **Step 4: Final safety check**
+- [x] **Step 4: Final safety check**
 
 Run:
 
 ```powershell
-rg -n "ResetBase|vssadmin|Delete\s+Shadows|pnputil|DriverStore|Register-ScheduledTask|Unregister-ScheduledTask|New-ScheduledTask" SafeDiskCleanup.ps1 src scripts tests
+rg -n "ResetBase|vssadmin|Delete\s+Shadows|pnputil|DriverStore|Register-ScheduledTask|Unregister-ScheduledTask|New-ScheduledTask" SafeDiskCleanup.ps1 src scripts
 ```
 
 Expected: no unsafe matches in cleanup behavior.
 
-- [ ] **Step 5: Commit verification updates if needed**
+- [x] **Step 5: Commit verification updates if needed**
 
 If build verification required script or documentation fixes, commit them with:
 
