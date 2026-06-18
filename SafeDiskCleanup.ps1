@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [switch] $Aggressive,
-    [switch] $DryRun,    
+    [switch] $DryRun,
     [ValidateRange(0, 3650)]
     [int] $MinAgeDays = 7,
     [string] $LogPath = '',
