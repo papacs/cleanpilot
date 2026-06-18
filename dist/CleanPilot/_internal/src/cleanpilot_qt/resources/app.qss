@@ -1,0 +1,92 @@
+QMainWindow {
+    background: #f6f8fb;
+    color: #172033;
+    font-family: "Microsoft YaHei UI", "Segoe UI";
+    font-size: 13px;
+}
+
+QLabel#appTitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+QLabel#appSubtitle {
+    color: #5f6b7a;
+}
+
+QLabel#statusBadge {
+    background: #e8f2ff;
+    border: 1px solid #b8d4f5;
+    color: #174a8b;
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+QPushButton {
+    border: 1px solid #c8d1df;
+    background: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+QPushButton:hover {
+    background: #f3f7fc;
+}
+
+QPushButton:disabled {
+    color: #99a3b2;
+    background: #eef1f5;
+}
+
+QPushButton#primaryButton {
+    background: #1769e0;
+    color: white;
+    border-color: #1769e0;
+    font-weight: 600;
+}
+
+QLabel#recommendationPanel {
+    background: #eef6ff;
+    border: 1px solid #b9d7ff;
+    border-radius: 6px;
+    padding: 10px;
+    color: #174a8b;
+}
+
+QTableWidget {
+    background: #ffffff;
+    border: 1px solid #d8dee9;
+    gridline-color: #edf1f7;
+    selection-background-color: #dcecff;
+}
+
+QHeaderView::section {
+    background: #f0f4f9;
+    border: 0;
+    border-right: 1px solid #d8dee9;
+    padding: 7px;
+    font-weight: 600;
+}
+
+QProgressBar {
+    border: 1px solid #c8d1df;
+    border-radius: 5px;
+    height: 14px;
+    text-align: center;
+    background: #ffffff;
+}
+
+QProgressBar::chunk {
+    background: #1b7f4c;
+    border-radius: 5px;
+}
+
+QTextEdit {
+    background: #101828;
+    color: #e6edf7;
+    border: 1px solid #25344f;
+    border-radius: 6px;
+    font-family: "Cascadia Mono", Consolas;
+    font-size: 12px;
+}

@@ -4,9 +4,15 @@ obj/
 out/
 publish/
 artifacts/
+build/
+dist/*
+!dist/CleanPilot/
+!dist/CleanPilot/**
+*.spec
 
 # Local tools and third-party binaries
 tools/
+.venv-qt/
 
 # Runtime logs and local cleanup output
 *.log

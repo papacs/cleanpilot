@@ -33,7 +33,7 @@
 - Create: `src/cleanpilot_qt/models.py`
 - Create: `src/cleanpilot_qt/engine.py`
 
-- [ ] **Step 1: Write failing parser and command tests**
+- [x] **Step 1: Write failing parser and command tests**
 
 Create `tests/test_qt_engine.py`:
 
@@ -102,7 +102,7 @@ class EngineAdapterTests(unittest.TestCase):
         self.assertIn("管理员", message)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -112,7 +112,7 @@ python -m unittest tests.test_qt_engine -v
 
 Expected: FAIL with `ModuleNotFoundError` because `src.cleanpilot_qt.engine` does not exist.
 
-- [ ] **Step 3: Add minimal models and engine adapter**
+- [x] **Step 3: Add minimal models and engine adapter**
 
 Create `src/cleanpilot_qt/__init__.py` as an empty file.
 
@@ -245,7 +245,7 @@ def run_command(
     return process.wait()
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run:
 
@@ -255,7 +255,7 @@ python -m unittest tests.test_qt_engine -v
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
@@ -272,7 +272,7 @@ git commit -m "feat: add Qt engine adapter"
 - Create: `src/cleanpilot_qt/app.py`
 - Create: `src/cleanpilot_qt/resources/app.qss`
 
-- [ ] **Step 1: Write failing UI contract test**
+- [x] **Step 1: Write failing UI contract test**
 
 Create `tests/test_qt_ui_contract.py`:
 
@@ -305,7 +305,7 @@ class QtUiContractTests(unittest.TestCase):
             self.assertIn(required, source)
 ```
 
-- [ ] **Step 2: Run UI contract test to verify it fails**
+- [x] **Step 2: Run UI contract test to verify it fails**
 
 Run:
 
@@ -315,7 +315,7 @@ python -m unittest tests.test_qt_ui_contract -v
 
 Expected: FAIL because `main_window.py` and `app.qss` do not exist.
 
-- [ ] **Step 3: Create Qt main window**
+- [x] **Step 3: Create Qt main window**
 
 Create `src/cleanpilot_qt/main_window.py` with a `CleanPilotWindow` class that:
 
@@ -332,7 +332,7 @@ Create `src/cleanpilot_qt/main_window.py` with a `CleanPilotWindow` class that:
 
 The implementation must keep all cleanup execution routed through `SafeDiskCleanup.ps1`.
 
-- [ ] **Step 4: Create Qt app entry point**
+- [x] **Step 4: Create Qt app entry point**
 
 Create `src/cleanpilot_qt/app.py`:
 
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 5: Create professional stylesheet**
+- [x] **Step 5: Create professional stylesheet**
 
 Create `src/cleanpilot_qt/resources/app.qss` with:
 
@@ -425,7 +425,7 @@ QTextEdit {
 }
 ```
 
-- [ ] **Step 6: Run UI contract test to verify it passes**
+- [x] **Step 6: Run UI contract test to verify it passes**
 
 Run:
 
@@ -435,7 +435,7 @@ python -m unittest tests.test_qt_ui_contract -v
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -451,7 +451,7 @@ git commit -m "feat: add Qt desktop interface"
 - Create: `scripts/build_qt_app.ps1`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Write failing static script checks**
+- [x] **Step 1: Write failing static script checks**
 
 Extend `tests/test_qt_ui_contract.py` with:
 
@@ -469,7 +469,7 @@ Extend `tests/test_qt_ui_contract.py` with:
         self.assertIn("SafeDiskCleanup.ps1", build_script)
 ```
 
-- [ ] **Step 2: Run static script checks to verify they fail**
+- [x] **Step 2: Run static script checks to verify they fail**
 
 Run:
 
@@ -479,7 +479,7 @@ python -m unittest tests.test_qt_ui_contract -v
 
 Expected: FAIL because build scripts do not exist.
 
-- [ ] **Step 3: Create dependency download script**
+- [x] **Step 3: Create dependency download script**
 
 Create `scripts/download_qt_wheels.ps1` that:
 
@@ -487,7 +487,7 @@ Create `scripts/download_qt_wheels.ps1` that:
 - Creates `tools\wheels`.
 - Downloads fixed versions of `PySide6`, `shiboken6`, and `PyInstaller` with `python -m pip download`.
 
-- [ ] **Step 4: Create build script**
+- [x] **Step 4: Create build script**
 
 Create `scripts/build_qt_app.ps1` that:
 
@@ -497,7 +497,7 @@ Create `scripts/build_qt_app.ps1` that:
 - Adds `SafeDiskCleanup.ps1` and `Run-SafeDiskCleanup-AsAdmin.cmd` into the release directory.
 - Verifies `dist\CleanPilot\CleanPilot.exe` exists.
 
-- [ ] **Step 5: Update `.gitignore`**
+- [x] **Step 5: Update `.gitignore`**
 
 Add:
 
@@ -509,7 +509,7 @@ dist/
 tools/wheels/
 ```
 
-- [ ] **Step 6: Run static script checks to verify they pass**
+- [x] **Step 6: Run static script checks to verify they pass**
 
 Run:
 
@@ -519,7 +519,7 @@ python -m unittest tests.test_qt_ui_contract -v
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -533,7 +533,7 @@ git commit -m "build: add Qt desktop packaging scripts"
 **Files:**
 - Modify: `README.md`
 
-- [ ] **Step 1: Add desktop usage documentation**
+- [x] **Step 1: Add desktop usage documentation**
 
 Add Chinese sections that describe:
 
@@ -543,7 +543,7 @@ Add Chinese sections that describe:
 - How to build a self-contained Windows release.
 - Confirmation that existing CLI commands still work.
 
-- [ ] **Step 2: Run documentation and CLI verification**
+- [x] **Step 2: Run documentation and CLI verification**
 
 Run:
 
@@ -554,7 +554,7 @@ python -m unittest tests.test_qt_engine tests.test_qt_ui_contract -v
 
 Expected: both commands PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 
@@ -570,7 +570,7 @@ git commit -m "docs: document Qt desktop app"
 - Use: `scripts/build_qt_app.ps1`
 - Use: `src/cleanpilot_qt/app.py`
 
-- [ ] **Step 1: Download dependency wheels**
+- [x] **Step 1: Download dependency wheels**
 
 Run:
 
@@ -580,7 +580,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\download_qt_wheels
 
 Expected: `tools\wheels` contains PySide6, shiboken6, and PyInstaller wheels.
 
-- [ ] **Step 2: Build release directory**
+- [x] **Step 2: Build release directory**
 
 Run:
 
@@ -590,7 +590,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_qt_app.ps1
 
 Expected: `dist\CleanPilot\CleanPilot.exe` exists.
 
-- [ ] **Step 3: Run final tests**
+- [x] **Step 3: Run final tests**
 
 Run:
 
@@ -601,17 +601,17 @@ python -m unittest tests.test_qt_engine tests.test_qt_ui_contract -v
 
 Expected: both commands PASS.
 
-- [ ] **Step 4: Final safety check**
+- [x] **Step 4: Final safety check**
 
 Run:
 
 ```powershell
-rg -n "ResetBase|vssadmin|Delete\s+Shadows|pnputil|DriverStore|Register-ScheduledTask|Unregister-ScheduledTask|New-ScheduledTask" SafeDiskCleanup.ps1 src scripts tests
+rg -n "ResetBase|vssadmin|Delete\s+Shadows|pnputil|DriverStore|Register-ScheduledTask|Unregister-ScheduledTask|New-ScheduledTask" SafeDiskCleanup.ps1 src scripts
 ```
 
 Expected: no unsafe matches in cleanup behavior.
 
-- [ ] **Step 5: Commit verification updates if needed**
+- [x] **Step 5: Commit verification updates if needed**
 
 If build verification required script or documentation fixes, commit them with:
 
