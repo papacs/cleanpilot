@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Qt, Signal
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QButtonGroup,
@@ -68,6 +68,7 @@ class CleanPilotWindow(QMainWindow):
         self.log_lines: list[str] = []
         self.worker_thread: QThread | None = None
         self.worker: EngineWorker | None = None
+        self.current_operation = "idle"
 
         self.setWindowTitle("CleanPilot")
         self._build_ui()
@@ -161,13 +162,17 @@ class CleanPilotWindow(QMainWindow):
         self.table.setHorizontalHeaderLabels(["选择", "类别", "风险", "预估大小", "文件数", "路径"])
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.table.setTextElideMode(Qt.ElideNone)
         self.table.verticalHeader().setVisible(False)
+        self.table.horizontalHeader().setStretchLastSection(False)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(5, QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(5, QHeaderView.Interactive)
+        self.table.setColumnWidth(5, 520)
         self.table.itemSelectionChanged.connect(self.update_detail_panel)
         left_layout.addWidget(self.table)
 
@@ -218,6 +223,7 @@ class CleanPilotWindow(QMainWindow):
             return False
 
     def start_scan(self):
+        self.current_operation = "scan"
         self.candidates.clear()
         self.log_lines.clear()
         self.table.setRowCount(0)
@@ -250,6 +256,7 @@ class CleanPilotWindow(QMainWindow):
         if answer != QMessageBox.Yes:
             return
 
+        self.current_operation = "clean"
         self.log_view.append("开始清理：调用 SafeDiskCleanup.ps1")
         self.progress_bar.setRange(0, 0)
         self.operation_label.setText("正在清理")
@@ -290,27 +297,54 @@ class CleanPilotWindow(QMainWindow):
         row = self.table.rowCount()
         self.table.insertRow(row)
 
+        self.table.setCellWidget(row, 0, self._make_checkbox_cell(candidate))
+        self._set_table_item(row, 1, candidate.name)
+        self._set_table_item(row, 2, candidate.risk)
+        self._set_table_item(row, 3, candidate.estimated_size)
+        self._set_table_item(row, 4, str(candidate.file_count))
+        path_item = QTableWidgetItem(candidate.path)
+        path_item.setToolTip(candidate.path)
+        self.table.setItem(row, 5, path_item)
+        self.table.resizeColumnToContents(5)
+
+    def _make_checkbox_cell(self, candidate: CleanupCandidate) -> QWidget:
+        wrapper = QWidget()
+        layout = QHBoxLayout(wrapper)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignCenter)
         checkbox = QCheckBox()
         checkbox.setChecked(candidate.selected)
         checkbox.stateChanged.connect(lambda state, item=candidate: setattr(item, "selected", state == 2))
-        self.table.setCellWidget(row, 0, checkbox)
-        self.table.setItem(row, 1, QTableWidgetItem(candidate.name))
-        self.table.setItem(row, 2, QTableWidgetItem(candidate.risk))
-        self.table.setItem(row, 3, QTableWidgetItem(candidate.estimated_size))
-        self.table.setItem(row, 4, QTableWidgetItem(str(candidate.file_count)))
-        self.table.setItem(row, 5, QTableWidgetItem(candidate.path))
+        layout.addWidget(checkbox)
+        return wrapper
+
+    def _set_table_item(self, row: int, column: int, text: str):
+        item = QTableWidgetItem(text)
+        self.table.setItem(row, column, item)
 
     def finish_run(self, exit_code: int):
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(100 if exit_code == 0 else 0)
         self.scan_button.setEnabled(True)
-        self.clean_button.setEnabled(bool(self.candidates))
         self.operation_label.setText("完成" if exit_code == 0 else f"失败，退出码 {exit_code}")
-        self.recommendation_label.setText(
-            recommendation_for_candidates(self.candidates, self.log_lines, self._is_admin())
-        )
+        if self.current_operation == "clean" and exit_code == 0:
+            self._clear_candidates_after_cleanup()
+            self.recommendation_label.setText("清理完成。候选项已清空，请重新扫描查看最新结果。")
+        else:
+            self.clean_button.setEnabled(bool(self.candidates))
+            self.recommendation_label.setText(
+                recommendation_for_candidates(self.candidates, self.log_lines, self._is_admin())
+            )
+        self.current_operation = "idle"
         self.worker = None
         self.worker_thread = None
+
+    def _clear_candidates_after_cleanup(self):
+        self.candidates.clear()
+        self.table.clearSelection()
+        self.table.setRowCount(0)
+        self.clean_button.setEnabled(False)
+        self.detail_text.setText("清理完成。候选项已清空，请重新扫描查看最新结果。")
 
     def update_detail_panel(self):
         indexes = self.table.selectionModel().selectedRows()

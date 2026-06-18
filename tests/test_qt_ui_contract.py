@@ -52,6 +52,18 @@ class QtUiContractTests(unittest.TestCase):
         launcher = Path("src/cleanpilot_qt_launcher.py").read_text(encoding="utf-8")
         self.assertIn("from cleanpilot_qt.app import main", launcher)
 
+    def test_cleanup_table_keeps_paths_readable_and_resets_after_clean(self):
+        source = Path("src/cleanpilot_qt/main_window.py").read_text(encoding="utf-8")
+
+        for required in [
+            "Qt.AlignCenter",
+            "Qt.ElideNone",
+            "setToolTip(candidate.path)",
+            "_clear_candidates_after_cleanup",
+            "清理完成",
+        ]:
+            self.assertIn(required, source)
+
 
 if __name__ == "__main__":
     unittest.main()
