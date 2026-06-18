@@ -33,7 +33,7 @@
 - Create: `src/cleanpilot_qt/models.py`
 - Create: `src/cleanpilot_qt/engine.py`
 
-- [ ] **Step 1: Write failing parser and command tests**
+- [x] **Step 1: Write failing parser and command tests**
 
 Create `tests/test_qt_engine.py`:
 
@@ -102,7 +102,7 @@ class EngineAdapterTests(unittest.TestCase):
         self.assertIn("管理员", message)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -112,7 +112,7 @@ python -m unittest tests.test_qt_engine -v
 
 Expected: FAIL with `ModuleNotFoundError` because `src.cleanpilot_qt.engine` does not exist.
 
-- [ ] **Step 3: Add minimal models and engine adapter**
+- [x] **Step 3: Add minimal models and engine adapter**
 
 Create `src/cleanpilot_qt/__init__.py` as an empty file.
 
@@ -245,7 +245,7 @@ def run_command(
     return process.wait()
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run:
 
@@ -255,7 +255,7 @@ python -m unittest tests.test_qt_engine -v
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
