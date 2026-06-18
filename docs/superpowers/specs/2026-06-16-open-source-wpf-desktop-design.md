@@ -1,40 +1,40 @@
-# Open Source WPF Desktop Redesign
+# 开源 WPF 桌面版重新设计
 
-## Goal
+## 目标
 
-Turn SafeDiskCleanup from a script-first Windows cleanup utility into a trustworthy open source Windows 10/11 desktop tool with a polished WPF interface, visible progress, auditable cleanup details, and clean release packaging.
+将 SafeDiskCleanup 从脚本优先的 Windows 清理工具，升级为可信赖的开源 Windows 10/11 桌面工具，提供精致的 WPF 界面、可见进度、可审计的清理详情和清晰的发布打包方式。
 
-## Product Positioning
+## 产品定位
 
-SafeDiskCleanup should be positioned as a safe Windows C drive cleanup assistant for developers and power users:
+SafeDiskCleanup 应定位为面向开发者和高级用户的安全 Windows C 盘清理助手：
 
-- Scan first, clean second.
-- Show every cleanup category before deletion.
-- Use explicit allowlists instead of broad folder deletion.
-- Avoid personal files, driver stores, restore point deletion, and bundled proprietary analyzers.
-- Keep the PowerShell engine usable for automation while making the desktop app the primary user experience.
+- 先扫描，再清理。
+- 删除前展示每个清理类别。
+- 使用明确的允许清单，而不是宽泛删除目录。
+- 避免处理个人文件、驱动存储、还原点删除和捆绑的专有分析器。
+- 保留 PowerShell 引擎的自动化能力，同时让桌面应用成为主要用户体验。
 
-## Selected Approach
+## 选定方案
 
-Use `.NET 8 + WPF` for the Windows desktop client and keep PowerShell as the cleanup engine.
+Windows 桌面客户端使用 `.NET 8 + WPF`，并继续保留 PowerShell 作为清理引擎。
 
-The desktop app launches the PowerShell engine as an elevated child process when cleanup requires Administrator rights. The engine emits structured JSON Lines events in addition to plain text logs, so the UI can render progress, category tables, warnings, and final summaries without parsing free-form text.
+当清理需要管理员权限时，桌面应用以提升权限的子进程启动 PowerShell 引擎。引擎除普通文本日志外，还输出结构化 JSON Lines 事件，使 UI 能够在不解析自由文本的情况下渲染进度、类别表、警告和最终汇总。
 
-This is preferred over Electron, Tauri, or WinUI 3 because WPF is smaller, more native to Windows administration tools, mature, easy to package as a self-contained app, and well suited for process control and system utility interfaces.
+相比 Electron、Tauri 或 WinUI 3，该方案更适合本项目：WPF 体积更小，更贴近 Windows 管理工具，成熟稳定，易于打包为自包含应用，并且适合进程控制和系统工具界面。
 
-## Non-Goals For First Desktop Release
+## 首个桌面版本的非目标
 
-- No browser-based UI.
-- No cross-platform support.
-- No background scheduled cleanup.
-- No automatic cleanup on startup.
-- No bundled WizTree binary or other proprietary analyzer.
-- No deletion outside explicit allowlisted cleanup targets.
-- No registry cleaning, driver store cleaning, or restore point deletion.
+- 不提供基于浏览器的 UI。
+- 不支持跨平台。
+- 不提供后台计划清理。
+- 不在启动时自动清理。
+- 不捆绑 WizTree 二进制文件或其他专有分析器。
+- 不删除明确允许清单之外的内容。
+- 不清理注册表、驱动存储或还原点。
 
-## Repository Restructure
+## 仓库结构调整
 
-Recommended structure:
+推荐结构：
 
 ```text
 SafeDiskCleanup.ps1
@@ -62,57 +62,57 @@ SECURITY.md
 .gitignore
 ```
 
-The existing `tools/WizTree` folder should be removed from the public repository. The script may still support `-WizTreePath`, but documentation must require users to download WizTree themselves if they want that companion workflow.
+现有 `tools/WizTree` 文件夹应从公开仓库移除。脚本仍可支持 `-WizTreePath`，但文档必须要求用户在需要该辅助流程时自行下载 WizTree。
 
-## Desktop User Experience
+## 桌面用户体验
 
-The first screen is the actual cleanup workspace, not a marketing page.
+首屏就是实际清理工作区，而不是营销页面。
 
-Top area:
+顶部区域：
 
-- App name, current drive, used/free capacity, and Administrator status.
-- Primary actions: `Scan`, `Clean Selected`, `Open Log`, `Settings`.
-- Mode selector: `Safe` and `Deep Scan`.
+- 应用名称、当前磁盘、已用/可用容量和管理员状态。
+- 主要操作：`Scan`、`Clean Selected`、`Open Log`、`Settings`。
+- 模式选择器：`Safe` 和 `Deep Scan`。
 
-Main workspace:
+主工作区：
 
-- Cleanup category table with columns: category, path, risk level, eligible files, estimated size, selected state, and status.
-- Risk labels: `Safe`, `Developer Cache`, `Windows Maintenance`, `Review`.
-- Details panel showing what a selected category contains and why it is safe or requires review.
+- 清理类别表格，列包括：类别、路径、风险等级、符合条件的文件数、预估大小、选中状态和状态。
+- 风险标签：`Safe`、`Developer Cache`、`Windows Maintenance`、`Review`。
+- 详情面板展示所选类别包含的内容，以及它为什么安全或为什么需要复核。
 
-Bottom area:
+底部区域：
 
-- Overall progress bar.
-- Current operation text.
-- Event log stream with warnings highlighted.
-- Final summary with reclaimed size, skipped files, and log path.
+- 总体进度条。
+- 当前操作文本。
+- 事件日志流，并突出显示警告。
+- 最终汇总，包括释放空间、跳过文件和日志路径。
 
-The visual style should be professional and utilitarian: dense but readable tables, restrained colors, clear status badges, native Windows spacing, and no decorative hero layout.
+视觉风格应专业、实用：表格密集但可读，颜色克制，状态徽标清晰，采用原生 Windows 间距，不使用装饰性英雄区布局。
 
-## Cleanup Flow
+## 清理流程
 
-1. User opens the app.
-2. App checks whether it is running elevated.
-3. User clicks `Scan`.
-4. App runs the engine in dry-run mode with JSONL output enabled.
-5. Engine reports each cleanup target with estimated reclaimable size and risk metadata.
-6. UI displays candidates and lets the user select allowed targets.
-7. User clicks `Clean Selected`.
-8. If elevated rights are needed and missing, app relaunches itself or the engine with Administrator rights.
-9. Engine cleans selected targets and streams progress events.
-10. UI updates progress, logs warnings, and shows a final summary.
+1. 用户打开应用。
+2. 应用检查自身是否以提升权限运行。
+3. 用户点击 `Scan`。
+4. 应用以 dry-run 模式和 JSONL 输出启动引擎。
+5. 引擎报告每个清理目标的预估可释放空间和风险元数据。
+6. UI 展示候选项，并允许用户选择允许的目标。
+7. 用户点击 `Clean Selected`。
+8. 如果需要管理员权限但当前缺失，应用会以管理员权限重新启动自身或引擎。
+9. 引擎清理选定目标，并流式输出进度事件。
+10. UI 更新进度、记录警告，并显示最终汇总。
 
-## Engine Contract
+## 引擎契约
 
-`SafeDiskCleanup.ps1` should gain machine-readable output without breaking current command-line usage.
+`SafeDiskCleanup.ps1` 应增加机器可读输出，同时不破坏当前命令行用法。
 
-New parameters:
+新增参数：
 
-- `-JsonLines`: emit one JSON object per line for UI consumption.
-- `-IncludeTargets <string[]>`: clean only named target IDs selected by the UI.
-- `-NoRecycleBin`: allow the UI to treat recycle bin cleanup as an explicit selectable item.
+- `-JsonLines`：为 UI 消费输出每行一个 JSON 对象。
+- `-IncludeTargets <string[]>`：只清理由 UI 选中的具名目标 ID。
+- `-NoRecycleBin`：允许 UI 把回收站清理作为明确可选项处理。
 
-Each cleanup target should have a stable ID and metadata:
+每个清理目标应具备稳定 ID 和元数据：
 
 - `id`
 - `name`
@@ -123,7 +123,7 @@ Each cleanup target should have a stable ID and metadata:
 - `minimumAgeDays`
 - `description`
 
-Core event types:
+核心事件类型：
 
 - `started`
 - `target_discovered`
@@ -135,89 +135,89 @@ Core event types:
 - `error`
 - `summary`
 
-The UI must depend on these events, not free-form log strings.
+UI 必须依赖这些事件，而不是自由格式日志字符串。
 
-## Open Source Readiness
+## 开源准备
 
-Before public promotion:
+公开推广前：
 
-- Remove bundled WizTree binaries and locale files.
-- Add `.gitignore` entries for local tools, logs, build outputs, and temporary packages.
-- Add `README.md` with screenshots, safety model, quick start, CLI usage, desktop usage, and examples.
-- Add an open source license, preferably MIT unless there is a reason to choose a more restrictive license.
-- Add `SECURITY.md` explaining how to report unsafe cleanup behavior.
-- Add `CHANGELOG.md` starting at `0.1.0`.
-- Add GitHub Actions for PowerShell parser validation, script tests, and .NET build.
-- Add release packaging instructions for a self-contained Windows x64 build.
+- 移除捆绑的 WizTree 二进制文件和语言文件。
+- 在 `.gitignore` 中加入本地工具、日志、构建输出和临时包。
+- 补充 `README.md`，包含截图、安全模型、快速开始、CLI 用法、桌面用法和示例。
+- 添加开源许可证；除非有理由选择更严格的许可证，否则优先使用 MIT。
+- 添加 `SECURITY.md`，说明如何报告不安全清理行为。
+- 添加从 `0.1.0` 开始的 `CHANGELOG.md`。
+- 添加 GitHub Actions，用于 PowerShell 解析器验证、脚本测试和 .NET 构建。
+- 添加自包含 Windows x64 构建的发布打包说明。
 
-## Safety Rules
+## 安全规则
 
-The existing safety posture remains mandatory:
+现有安全姿态仍然是强制要求：
 
-- Never target Downloads, Desktop, Documents, Pictures, Music, or Videos.
-- Never target `Program Files` installation folders.
-- Never manually delete `WinSxS`, `Windows\Installer`, driver store contents, or restore points.
-- Never use `DISM /ResetBase`.
-- Never use `vssadmin delete shadows`.
-- Treat locked files as skips.
-- Prefer Windows-supported cleanup commands where available.
-- Default to dry-run scan before cleanup.
+- 永不处理 Downloads、Desktop、Documents、Pictures、Music 或 Videos。
+- 永不处理 `Program Files` 安装目录。
+- 永不手动删除 `WinSxS`、`Windows\Installer`、驱动存储内容或还原点。
+- 永不使用 `DISM /ResetBase`。
+- 永不使用 `vssadmin delete shadows`。
+- 锁定文件视为跳过。
+- 在可用时优先使用 Windows 支持的清理命令。
+- 默认先执行 dry-run 扫描，再执行清理。
 
-The desktop app must expose these rules in concise user-facing copy, especially before `Clean Selected`.
+桌面应用必须用简洁的用户可见文案展示这些规则，尤其是在 `Clean Selected` 之前。
 
-## Testing Strategy
+## 测试策略
 
-PowerShell tests:
+PowerShell 测试：
 
-- Parser validation.
-- Parameter and function contract validation.
-- Unsafe pattern checks.
-- JSONL schema checks.
-- Include-target filtering behavior.
-- Dry-run does not delete files.
+- 解析器验证。
+- 参数和函数契约验证。
+- 不安全模式检查。
+- JSONL 架构检查。
+- 包含目标过滤行为。
+- dry-run 不删除文件。
 
-.NET tests:
+.NET 测试：
 
-- JSONL parser maps engine events to view models.
-- Progress aggregation handles missing or warning events.
-- Target selection produces the expected `-IncludeTargets` arguments.
-- Admin detection and relaunch command construction are correct.
+- JSONL 解析器能将引擎事件映射到视图模型。
+- 进度聚合能处理缺失事件或警告事件。
+- 目标选择能生成预期的 `-IncludeTargets` 参数。
+- 管理员检测和重新启动命令构造正确。
 
-Manual verification:
+手动验证：
 
-- Run scan without Administrator rights.
-- Run scan with Administrator rights.
-- Run cleanup against a temporary fixture path.
-- Verify progress and logs remain responsive during long scans.
-- Verify final release build launches on Windows 10/11.
+- 在无管理员权限下运行扫描。
+- 在管理员权限下运行扫描。
+- 针对临时夹具路径运行清理。
+- 验证长时间扫描期间进度和日志仍保持响应。
+- 验证最终发布构建可在 Windows 10/11 上启动。
 
-## Release Milestones
+## 发布里程碑
 
-### Milestone 1: Trustworthy Open Source Baseline
+### 里程碑 1：可信赖的开源基线
 
-Remove proprietary binaries, add README, license, security policy, changelog, gitignore, and CI for the current script.
+移除专有二进制文件，补充 README、许可证、安全策略、变更日志、gitignore，以及当前脚本的 CI。
 
-### Milestone 2: Structured Engine
+### 里程碑 2：结构化引擎
 
-Add stable cleanup target IDs, JSONL events, target filtering, and tests while preserving existing CLI behavior.
+添加稳定清理目标 ID、JSONL 事件、目标过滤和测试，同时保持现有 CLI 行为。
 
-### Milestone 3: WPF Desktop MVP
+### 里程碑 3：WPF 桌面 MVP
 
-Create the .NET 8 WPF app with scan, selectable targets, progress bar, log stream, admin status, and clean selected flow.
+创建 .NET 8 WPF 应用，提供扫描、可选目标、进度条、日志流、管理员状态和清理选中项流程。
 
-### Milestone 4: Polished Release
+### 里程碑 4：完善发布
 
-Add screenshots, release packaging, signed or checksumed artifacts, improved docs, and a first public `0.1.0` release.
+添加截图、发布打包、签名或校验和产物、完善文档，并发布首个公开 `0.1.0` 版本。
 
-## Acceptance Criteria
+## 验收标准
 
-- The repository can be published without bundled proprietary executables.
-- A new user can understand what the tool will and will not delete from the README.
-- The CLI still supports safe dry-run and cleanup.
-- The WPF app can scan, show estimated cleanup categories, clean selected targets, display progress, and show a final report.
-- Automated tests cover script safety contracts and the UI event parser.
-- The project has enough trust material for GitHub promotion: license, CI, screenshots, security policy, changelog, and release notes.
+- 仓库可以在不捆绑专有可执行文件的情况下公开发布。
+- 新用户能从 README 理解工具会删除什么、不会删除什么。
+- CLI 仍支持安全 dry-run 和清理。
+- WPF 应用可以扫描、展示预估清理类别、清理选定目标、显示进度并展示最终报告。
+- 自动化测试覆盖脚本安全契约和 UI 事件解析器。
+- 项目具备足够的 GitHub 推广信任材料：许可证、CI、截图、安全策略、变更日志和发布说明。
 
-## Notes
+## 备注
 
-This workspace is not currently a git repository, so this design document cannot be committed here until a repository is initialized.
+此工作区当前不是 git 仓库，因此在初始化仓库之前无法提交此设计文档。

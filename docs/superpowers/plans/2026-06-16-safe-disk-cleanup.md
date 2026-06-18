@@ -1,88 +1,88 @@
-# Safe Disk Cleanup and WizTree Companion Implementation Plan
+# 安全磁盘清理与 WizTree 辅助功能实施计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **面向代理式执行者：** 必需子技能：使用 `superpowers:subagent-driven-development`（推荐）或 `superpowers:executing-plans`，按任务逐项实施本计划。步骤使用复选框（`- [ ]`）语法进行跟踪。
 
-**Goal:** Fix interactive deletion confirmations and add optional WizTree companion launch support without bundling third-party binaries.
+**目标：** 修复交互式删除确认问题，并在不捆绑第三方二进制文件的前提下，增加可选的 WizTree 辅助启动支持。
 
-**Architecture:** Keep one self-contained PowerShell cleanup script with conservative deletion rules. Empty-directory cleanup will verify directories are empty before deletion and pass `-Confirm:$false` to suppress recursive-delete prompts. WizTree support will be optional: the script discovers `tools\WizTree\WizTree64.exe` beside the script, or accepts `-WizTreePath`, and only launches it for visual inspection.
+**架构：** 保持单个自包含的 PowerShell 清理脚本，并采用保守删除规则。清理空目录前会先确认目录确实为空，并传入 `-Confirm:$false` 以抑制递归删除确认提示。WizTree 支持为可选能力：脚本会在自身旁边查找 `tools\WizTree\WizTree64.exe`，也可接受 `-WizTreePath`，并且只用于启动可视化检查。
 
-**Tech Stack:** PowerShell 5.1+ compatible syntax, Windows built-in cmdlets, DISM, optional locally supplied WizTree Portable executable.
+**技术栈：** 兼容 PowerShell 5.1+ 的语法、Windows 内置 cmdlet、DISM，以及可选的本地 WizTree Portable 可执行文件。
 
 ---
 
-### Task 1: Confirmation Regression Tests
+### 任务 1：确认提示回归测试
 
-**Files:**
-- Modify: `tests/Test-SafeDiskCleanup.ps1`
-- Target under test: `SafeDiskCleanup.ps1`
+**文件：**
+- 修改：`tests/Test-SafeDiskCleanup.ps1`
+- 被测目标：`SafeDiskCleanup.ps1`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **步骤 1：编写失败测试**
 
-Add assertions that `Remove-EmptyDirectories` leaves stale non-empty directories alone without counting them as skipped delete failures, removes stale empty directories, and that directory `Remove-Item` calls include `-Confirm:$false`.
+添加断言：`Remove-EmptyDirectories` 应保留过期但非空的目录，且不把它们计为跳过的删除失败；应删除过期空目录；目录 `Remove-Item` 调用应包含 `-Confirm:$false`。
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **步骤 2：运行测试并确认失败**
 
-Run: `powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-SafeDiskCleanup.ps1`
+运行：`powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-SafeDiskCleanup.ps1`
 
-Expected: FAIL because the current directory cleanup attempts to delete non-empty directories and does not pass `-Confirm:$false`.
+预期：失败，因为当前目录清理会尝试删除非空目录，并且未传入 `-Confirm:$false`。
 
-### Task 2: Directory Cleanup Fix
+### 任务 2：目录清理修复
 
-**Files:**
-- Modify: `SafeDiskCleanup.ps1`
-- Test: `tests/Test-SafeDiskCleanup.ps1`
+**文件：**
+- 修改：`SafeDiskCleanup.ps1`
+- 测试：`tests/Test-SafeDiskCleanup.ps1`
 
-- [ ] **Step 1: Implement minimal fix**
+- [x] **步骤 1：实施最小修复**
 
-Change `Remove-EmptyDirectories` so it checks for child items first, skips non-empty directories without incrementing skipped delete failures, and removes only empty directories with `-Confirm:$false`.
+修改 `Remove-EmptyDirectories`：先检查子项；非空目录直接跳过，且不增加跳过的删除失败计数；只删除空目录，并传入 `-Confirm:$false`。
 
-### Task 3: WizTree Optional Companion
+### 任务 3：WizTree 可选辅助功能
 
-**Files:**
-- Modify: `SafeDiskCleanup.ps1`
-- Modify: `tests/Test-SafeDiskCleanup.ps1`
+**文件：**
+- 修改：`SafeDiskCleanup.ps1`
+- 修改：`tests/Test-SafeDiskCleanup.ps1`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **步骤 1：编写失败测试**
 
-Assert top-level parameters include `OpenWizTree`, `WizTreePath`, and `ScanPath`; functions include `Resolve-WizTreeExecutable` and `Start-WizTreeScan`; script content references `tools\WizTree\WizTree64.exe` and `/admin=1`.
+断言顶层参数包含 `OpenWizTree`、`WizTreePath` 和 `ScanPath`；函数包含 `Resolve-WizTreeExecutable` 和 `Start-WizTreeScan`；脚本内容引用 `tools\WizTree\WizTree64.exe` 和 `/admin=1`。
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **步骤 2：运行测试并确认失败**
 
-Run: `powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-SafeDiskCleanup.ps1`
+运行：`powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-SafeDiskCleanup.ps1`
 
-Expected: FAIL because WizTree parameters and helpers do not exist yet.
+预期：失败，因为 WizTree 参数和辅助函数尚不存在。
 
-- [ ] **Step 3: Implement minimal support**
+- [x] **步骤 3：实施最小支持**
 
-Add optional WizTree path resolution and startup. If no executable exists, log the expected placement path and continue. If `-OpenWizTree` is used and the executable exists, call `Start-Process` with the scan path and `/admin=1` when running elevated.
+添加可选的 WizTree 路径解析和启动逻辑。如果找不到可执行文件，记录预期放置路径并继续执行。如果使用 `-OpenWizTree` 且可执行文件存在，则调用 `Start-Process`，传入扫描路径，并在当前进程已提升权限时传入 `/admin=1`。
 
-### Task 4: Verification
+### 任务 4：验证
 
-**Files:**
-- Use: `SafeDiskCleanup.ps1`
-- Use: `tests/Test-SafeDiskCleanup.ps1`
+**文件：**
+- 使用：`SafeDiskCleanup.ps1`
+- 使用：`tests/Test-SafeDiskCleanup.ps1`
 
-- [ ] **Step 1: Run tests**
+- [x] **步骤 1：运行测试**
 
-Run: `powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-SafeDiskCleanup.ps1`
+运行：`powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-SafeDiskCleanup.ps1`
 
-Expected: PASS.
+预期：通过。
 
-- [ ] **Step 2: Run dry-run**
+- [x] **步骤 2：运行 dry-run**
 
-Run: `powershell -NoProfile -ExecutionPolicy Bypass -File .\SafeDiskCleanup.ps1 -DryRun -MinAgeDays 30`
+运行：`powershell -NoProfile -ExecutionPolicy Bypass -File .\SafeDiskCleanup.ps1 -DryRun -MinAgeDays 30`
 
-Expected: Script prints a dry-run summary and does not delete files.
+预期：脚本打印 dry-run 汇总，且不删除文件。
 
-- [ ] **Step 3: Check unsafe commands**
+- [x] **步骤 3：检查不安全命令**
 
-Search the script for broad deletion patterns, personal folders, scheduled task commands, `ResetBase`, shadow copy deletion, and driver store deletion.
+搜索脚本中的宽泛删除模式、个人文件夹、计划任务命令、`ResetBase`、卷影副本删除和驱动存储删除。
 
-Expected: No unsafe pattern is present.
+预期：不存在不安全模式。
 
-## Self-Review
+## 自检
 
-- The plan covers the confirmation fix, optional WizTree companion launch, validation tests, dry-run verification, and final safety review.
-- No destructive command is run during tests.
-- The plan uses explicit file paths and concrete verification commands.
-- This workspace is not a git repository, so commit steps are intentionally omitted.
+- 本计划覆盖确认提示修复、可选 WizTree 辅助启动、验证测试、dry-run 验证和最终安全检查。
+- 测试期间不会运行破坏性命令。
+- 本计划使用明确文件路径和具体验证命令。
+- 此工作区当前是 git 仓库；本次执行只更新文档状态，不自动提交。

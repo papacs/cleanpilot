@@ -1,63 +1,63 @@
-# Safe Disk Cleanup Design
+# 安全磁盘清理设计
 
-## Goal
+## 目标
 
-Build a Win10/Win11 PowerShell cleanup script that can be run manually to reclaim C drive space safely and quickly.
+构建一个 Win10/Win11 PowerShell 清理脚本，用户可以手动运行它，以安全且快速地释放 C 盘空间。
 
-## Selected Approach
+## 选定方案
 
-Use a single professional PowerShell script with conservative defaults and opt-in aggressive cleanup. The script favors Windows-supported cleanup mechanisms and explicit whitelisted cache paths over broad deletion.
+使用单个专业 PowerShell 脚本，默认策略保守，并提供可选的激进清理。相比宽泛删除目录，脚本优先使用 Windows 支持的清理机制和明确白名单中的缓存路径。
 
-## Default Behavior
+## 默认行为
 
-- Requires no configuration for normal use.
-- Elevates effectiveness when run as Administrator, while still supporting limited non-admin cleanup.
-- Supports `-DryRun` for reporting candidates without deletion.
-- Supports optional `-OpenWizTree` inspection when WizTree Portable is placed next to the script under `tools\WizTree\WizTree64.exe`.
-- Uses `-MinAgeDays 7` by default so recent cache files are not removed.
-- Logs all actions, reclaimed sizes, skipped files, and errors.
-- Cleans user and system temporary files, Windows Update download cache, Delivery Optimization cache, Windows Error Reporting cache, old CBS/DISM log archives, browser caches, and the recycle bin.
-- Skips Windows component store cleanup by default; runs `DISM /Online /Cleanup-Image /StartComponentCleanup` only when `-IncludeDism` is explicitly passed.
-- Includes a double-click launcher that asks for Administrator rights and leaves the PowerShell window open after completion.
+- 正常使用无需配置。
+- 以管理员身份运行时效果更好，同时仍支持有限的非管理员清理。
+- 支持 `-DryRun`，用于只报告候选项而不删除。
+- 当 WizTree Portable 放在脚本旁的 `tools\WizTree\WizTree64.exe` 时，支持可选的 `-OpenWizTree` 检查。
+- 默认使用 `-MinAgeDays 7`，避免删除最近生成的缓存文件。
+- 记录所有操作、释放大小、跳过文件和错误。
+- 清理用户和系统临时文件、Windows Update 下载缓存、传递优化缓存、Windows 错误报告缓存、旧 CBS/DISM 日志归档、浏览器缓存和回收站。
+- 默认跳过 Windows 组件存储清理；只有显式传入 `-IncludeDism` 时，才运行 `DISM /Online /Cleanup-Image /StartComponentCleanup`。
+- 包含一个双击启动器，用于请求管理员权限，并在完成后保留 PowerShell 窗口。
 
-## Safety Boundaries
+## 安全边界
 
-- Never targets personal libraries such as Downloads, Desktop, Documents, Pictures, Music, or Videos.
-- Never targets application installation directories under Program Files.
-- Never deletes driver store contents.
-- Does not delete all restore points.
-- Does not use `DISM /ResetBase` by default.
-- Uses explicit path allowlists and existence checks before deletion.
-- Handles locked files as skips rather than hard failures.
-- Deletes directories only after verifying they are empty, and suppresses PowerShell's recursive-delete confirmation prompt explicitly.
-- Treats DISM component cleanup as an optional Windows maintenance step because it can fail with system-level access or servicing-stack errors even after normal cleanup succeeds.
+- 永不处理 Downloads、Desktop、Documents、Pictures、Music 或 Videos 等个人库。
+- 永不处理 Program Files 下的应用安装目录。
+- 永不删除驱动存储内容。
+- 不删除所有还原点。
+- 默认不使用 `DISM /ResetBase`。
+- 删除前使用明确路径允许清单和存在性检查。
+- 将锁定文件作为跳过处理，而不是作为硬失败。
+- 仅在确认目录为空后才删除目录，并显式抑制 PowerShell 的递归删除确认提示。
+- 将 DISM 组件清理视为可选 Windows 维护步骤，因为即使普通缓存清理成功，它也可能因系统级访问或服务堆栈错误而失败。
 
-## Optional WizTree Companion
+## 可选 WizTree 辅助工具
 
-WizTree is not bundled or downloaded by this project. For internal use, place the portable executable at `tools\WizTree\WizTree64.exe` beside `SafeDiskCleanup.ps1`, or pass an explicit `-WizTreePath`. When `-OpenWizTree` is used, the script launches WizTree against `-ScanPath` (default: the system drive) so a user can visually inspect large folders before deciding what to clean. The cleanup script never deletes files based on WizTree output; WizTree is an inspection aid, while scripted deletion remains limited to the safe target allowlist.
+本项目不捆绑或下载 WizTree。内部使用时，可将 portable 可执行文件放在 `SafeDiskCleanup.ps1` 旁边的 `tools\WizTree\WizTree64.exe`，或显式传入 `-WizTreePath`。使用 `-OpenWizTree` 时，脚本会针对 `-ScanPath`（默认：系统盘）启动 WizTree，让用户在决定清理前可视化检查大目录。清理脚本永远不会根据 WizTree 输出删除文件；WizTree 只是检查辅助工具，脚本删除仍限制在安全目标允许清单内。
 
-## Optional Aggressive Behavior
+## 可选激进行为
 
-The `-Aggressive` switch may include older Windows upgrade residue such as `Windows.old` and `$WINDOWS.~BT` when present, plus deeper browser and package-manager cache cleanup. It still avoids personal data and rollback-hostile actions such as deleting all restore points.
+`-Aggressive` 开关可在存在时包含较旧的 Windows 升级残留，例如 `Windows.old` 和 `$WINDOWS.~BT`，并启用更深入的浏览器和包管理器缓存清理。它仍然避免个人数据，以及删除所有还原点这类不利于回滚的操作。
 
-## Optional DISM Behavior
+## 可选 DISM 行为
 
-The `-IncludeDism` switch runs Windows component store cleanup through DISM. This is useful when the system servicing stack allows it, but it is not part of the default internal cleanup path because DISM may return access or CBS servicing errors that do not affect normal cache cleanup.
+`-IncludeDism` 开关通过 DISM 运行 Windows 组件存储清理。当系统服务堆栈允许时，这很有用；但它不是默认内部清理路径的一部分，因为 DISM 可能返回访问或 CBS 服务错误，而这些错误不影响普通缓存清理。
 
-## Deliverables
+## 交付物
 
-- `SafeDiskCleanup.ps1`: user-facing cleanup script.
-- `Run-SafeDiskCleanup-AsAdmin.cmd`: double-click launcher for manual cleanup.
-- `tests/Test-SafeDiskCleanup.ps1`: lightweight validation tests.
-- Optional internal folder: `tools\WizTree\WizTree64.exe` supplied by the user or organization, not stored in this repository.
+- `SafeDiskCleanup.ps1`：面向用户的清理脚本。
+- `Run-SafeDiskCleanup-AsAdmin.cmd`：用于手动清理的双击启动器。
+- `tests/Test-SafeDiskCleanup.ps1`：轻量级验证测试。
+- 可选内部目录：`tools\WizTree\WizTree64.exe`，由用户或组织自行提供，不存储在本仓库中。
 
-## Verification
+## 验证
 
-- Parse the script with PowerShell to catch syntax errors.
-- Run tests that assert parameters, safety exclusions, dry-run support, scheduling support, DISM behavior, and absence of unsafe defaults.
-- Run tests that verify empty-directory cleanup does not attempt to delete non-empty directories.
-- Run a dry-run invocation to verify it reports without deleting.
+- 使用 PowerShell 解析脚本，以捕获语法错误。
+- 运行测试，断言参数、安全排除项、dry-run 支持、计划任务支持、DISM 行为，以及不存在不安全默认行为。
+- 运行测试，验证空目录清理不会尝试删除非空目录。
+- 运行 dry-run 调用，验证脚本只报告而不删除。
 
-## Notes
+## 备注
 
-This workspace is not a git repository, so the design document cannot be committed here.
+此工作区当前不是 git 仓库，因此无法在这里提交设计文档。
