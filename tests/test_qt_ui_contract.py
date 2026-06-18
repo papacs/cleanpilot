@@ -42,6 +42,16 @@ class QtUiContractTests(unittest.TestCase):
 
         self.assertIn("_MEIPASS", source)
 
+    def test_pyinstaller_uses_package_launcher(self):
+        build_script = Path("scripts/build_qt_app.ps1").read_text(encoding="utf-8")
+
+        self.assertIn("cleanpilot_qt_launcher.py", build_script)
+        self.assertIn("--paths", build_script)
+        self.assertNotIn('"src\\cleanpilot_qt\\app.py"', build_script)
+
+        launcher = Path("src/cleanpilot_qt_launcher.py").read_text(encoding="utf-8")
+        self.assertIn("from cleanpilot_qt.app import main", launcher)
+
 
 if __name__ == "__main__":
     unittest.main()

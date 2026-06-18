@@ -29,10 +29,11 @@ try {
         --clean `
         --name CleanPilot `
         --windowed `
+        --paths "src" `
         --add-data "SafeDiskCleanup.ps1;." `
         --add-data "Run-SafeDiskCleanup-AsAdmin.cmd;." `
         --add-data "src\cleanpilot_qt\resources\app.qss;src\cleanpilot_qt\resources" `
-        "src\cleanpilot_qt\app.py"
+        "src\cleanpilot_qt_launcher.py"
 } finally {
     Pop-Location
 }
