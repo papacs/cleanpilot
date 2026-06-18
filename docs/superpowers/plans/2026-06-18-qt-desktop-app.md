@@ -533,7 +533,7 @@ git commit -m "build: add Qt desktop packaging scripts"
 **Files:**
 - Modify: `README.md`
 
-- [ ] **Step 1: Add desktop usage documentation**
+- [x] **Step 1: Add desktop usage documentation**
 
 Add Chinese sections that describe:
 
@@ -543,7 +543,7 @@ Add Chinese sections that describe:
 - How to build a self-contained Windows release.
 - Confirmation that existing CLI commands still work.
 
-- [ ] **Step 2: Run documentation and CLI verification**
+- [x] **Step 2: Run documentation and CLI verification**
 
 Run:
 
@@ -554,7 +554,7 @@ python -m unittest tests.test_qt_engine tests.test_qt_ui_contract -v
 
 Expected: both commands PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 
