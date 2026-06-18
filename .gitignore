@@ -4,9 +4,13 @@ obj/
 out/
 publish/
 artifacts/
+build/
+dist/
+*.spec
 
 # Local tools and third-party binaries
 tools/
+.venv-qt/
 
 # Runtime logs and local cleanup output
 *.log

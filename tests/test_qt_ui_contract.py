@@ -25,6 +25,18 @@ class QtUiContractTests(unittest.TestCase):
         for required in ["QProgressBar", "QTableWidget", "#recommendationPanel", "#primaryButton"]:
             self.assertIn(required, source)
 
+    def test_packaging_scripts_cache_dependencies_and_build_release(self):
+        download_script = Path("scripts/download_qt_wheels.ps1").read_text(encoding="utf-8")
+        build_script = Path("scripts/build_qt_app.ps1").read_text(encoding="utf-8")
+
+        self.assertIn("tools\\wheels", download_script)
+        self.assertIn("PySide6", download_script)
+        self.assertIn("PyInstaller", download_script)
+        self.assertIn("--no-index", build_script)
+        self.assertIn("--find-links", build_script)
+        self.assertIn("CleanPilot.exe", build_script)
+        self.assertIn("SafeDiskCleanup.ps1", build_script)
+
 
 if __name__ == "__main__":
     unittest.main()

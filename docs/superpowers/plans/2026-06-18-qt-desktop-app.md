@@ -451,7 +451,7 @@ git commit -m "feat: add Qt desktop interface"
 - Create: `scripts/build_qt_app.ps1`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Write failing static script checks**
+- [x] **Step 1: Write failing static script checks**
 
 Extend `tests/test_qt_ui_contract.py` with:
 
@@ -469,7 +469,7 @@ Extend `tests/test_qt_ui_contract.py` with:
         self.assertIn("SafeDiskCleanup.ps1", build_script)
 ```
 
-- [ ] **Step 2: Run static script checks to verify they fail**
+- [x] **Step 2: Run static script checks to verify they fail**
 
 Run:
 
@@ -479,7 +479,7 @@ python -m unittest tests.test_qt_ui_contract -v
 
 Expected: FAIL because build scripts do not exist.
 
-- [ ] **Step 3: Create dependency download script**
+- [x] **Step 3: Create dependency download script**
 
 Create `scripts/download_qt_wheels.ps1` that:
 
@@ -487,7 +487,7 @@ Create `scripts/download_qt_wheels.ps1` that:
 - Creates `tools\wheels`.
 - Downloads fixed versions of `PySide6`, `shiboken6`, and `PyInstaller` with `python -m pip download`.
 
-- [ ] **Step 4: Create build script**
+- [x] **Step 4: Create build script**
 
 Create `scripts/build_qt_app.ps1` that:
 
@@ -497,7 +497,7 @@ Create `scripts/build_qt_app.ps1` that:
 - Adds `SafeDiskCleanup.ps1` and `Run-SafeDiskCleanup-AsAdmin.cmd` into the release directory.
 - Verifies `dist\CleanPilot\CleanPilot.exe` exists.
 
-- [ ] **Step 5: Update `.gitignore`**
+- [x] **Step 5: Update `.gitignore`**
 
 Add:
 
@@ -509,7 +509,7 @@ dist/
 tools/wheels/
 ```
 
-- [ ] **Step 6: Run static script checks to verify they pass**
+- [x] **Step 6: Run static script checks to verify they pass**
 
 Run:
 
@@ -519,7 +519,7 @@ python -m unittest tests.test_qt_ui_contract -v
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
