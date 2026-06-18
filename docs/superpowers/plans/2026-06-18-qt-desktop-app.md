@@ -272,7 +272,7 @@ git commit -m "feat: add Qt engine adapter"
 - Create: `src/cleanpilot_qt/app.py`
 - Create: `src/cleanpilot_qt/resources/app.qss`
 
-- [ ] **Step 1: Write failing UI contract test**
+- [x] **Step 1: Write failing UI contract test**
 
 Create `tests/test_qt_ui_contract.py`:
 
@@ -305,7 +305,7 @@ class QtUiContractTests(unittest.TestCase):
             self.assertIn(required, source)
 ```
 
-- [ ] **Step 2: Run UI contract test to verify it fails**
+- [x] **Step 2: Run UI contract test to verify it fails**
 
 Run:
 
@@ -315,7 +315,7 @@ python -m unittest tests.test_qt_ui_contract -v
 
 Expected: FAIL because `main_window.py` and `app.qss` do not exist.
 
-- [ ] **Step 3: Create Qt main window**
+- [x] **Step 3: Create Qt main window**
 
 Create `src/cleanpilot_qt/main_window.py` with a `CleanPilotWindow` class that:
 
@@ -332,7 +332,7 @@ Create `src/cleanpilot_qt/main_window.py` with a `CleanPilotWindow` class that:
 
 The implementation must keep all cleanup execution routed through `SafeDiskCleanup.ps1`.
 
-- [ ] **Step 4: Create Qt app entry point**
+- [x] **Step 4: Create Qt app entry point**
 
 Create `src/cleanpilot_qt/app.py`:
 
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 5: Create professional stylesheet**
+- [x] **Step 5: Create professional stylesheet**
 
 Create `src/cleanpilot_qt/resources/app.qss` with:
 
@@ -425,7 +425,7 @@ QTextEdit {
 }
 ```
 
-- [ ] **Step 6: Run UI contract test to verify it passes**
+- [x] **Step 6: Run UI contract test to verify it passes**
 
 Run:
 
@@ -435,7 +435,7 @@ python -m unittest tests.test_qt_ui_contract -v
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
