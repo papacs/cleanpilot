@@ -64,6 +64,19 @@ class QtUiContractTests(unittest.TestCase):
         ]:
             self.assertIn(required, source)
 
+    def test_scan_finish_updates_detail_and_cleanup_skips_keep_candidates(self):
+        source = Path("src/cleanpilot_qt/main_window.py").read_text(encoding="utf-8")
+
+        for required in [
+            "_finish_scan",
+            "selectRow(0)",
+            "parse_cleanup_summary",
+            "cleanup_followup_message",
+            "_cleanup_had_skips",
+            "未实际释放空间",
+        ]:
+            self.assertIn(required, source)
+
 
 if __name__ == "__main__":
     unittest.main()

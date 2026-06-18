@@ -3,6 +3,8 @@ from pathlib import Path
 
 from src.cleanpilot_qt.engine import (
     build_powershell_command,
+    cleanup_followup_message,
+    parse_cleanup_summary,
     parse_dry_run_line,
     recommendation_for_candidates,
 )
@@ -50,6 +52,40 @@ class EngineAdapterTests(unittest.TestCase):
         self.assertEqual(candidate.estimated_size, "256.36 KB")
         self.assertEqual(candidate.risk, "安全")
         self.assertTrue(candidate.selected)
+
+    def test_parse_dry_run_line_ignores_zero_size_candidate(self):
+        line = (
+            "2026-06-18 10:18:25 [INFO] DRY RUN: User temporary files "
+            "would remove 1 files, estimated 0 B, from "
+            "C:\\Users\\dell\\AppData\\Local\\Temp"
+        )
+
+        candidate = parse_dry_run_line(line)
+
+        self.assertIsNone(candidate)
+
+    def test_parse_cleanup_summary_extracts_skipped_count(self):
+        line = (
+            "2026-06-18 14:55:04 [INFO] Cleanup completed. "
+            "Removed files=0, skipped=74282, estimated reclaimed=0 B"
+        )
+
+        summary = parse_cleanup_summary(line)
+
+        self.assertIsNotNone(summary)
+        self.assertEqual(summary.removed_files, 0)
+        self.assertEqual(summary.skipped_files, 74282)
+        self.assertEqual(summary.reclaimed_size, "0 B")
+
+    def test_cleanup_followup_warns_when_files_were_skipped(self):
+        message = cleanup_followup_message(
+            removed_files=0,
+            skipped_files=74282,
+            reclaimed_size="0 B",
+        )
+
+        self.assertIn("未实际释放空间", message)
+        self.assertIn("74282", message)
 
     def test_recommendation_mentions_admin_when_required_items_exist(self):
         line = (

@@ -27,7 +27,10 @@ from PySide6.QtWidgets import (
 
 from .engine import (
     build_powershell_command,
+    cleanup_followup_message,
+    parse_cleanup_summary,
     parse_dry_run_line,
+    parse_size_to_bytes,
     recommendation_for_candidates,
     run_command,
 )
@@ -328,16 +331,54 @@ class CleanPilotWindow(QMainWindow):
         self.scan_button.setEnabled(True)
         self.operation_label.setText("完成" if exit_code == 0 else f"失败，退出码 {exit_code}")
         if self.current_operation == "clean" and exit_code == 0:
-            self._clear_candidates_after_cleanup()
-            self.recommendation_label.setText("清理完成。候选项已清空，请重新扫描查看最新结果。")
+            self._finish_clean()
         else:
-            self.clean_button.setEnabled(bool(self.candidates))
-            self.recommendation_label.setText(
-                recommendation_for_candidates(self.candidates, self.log_lines, self._is_admin())
-            )
+            self._finish_scan()
         self.current_operation = "idle"
         self.worker = None
         self.worker_thread = None
+
+    def _finish_scan(self):
+        self.clean_button.setEnabled(bool(self.candidates))
+        self.recommendation_label.setText(
+            recommendation_for_candidates(self.candidates, self.log_lines, self._is_admin())
+        )
+        if self.candidates:
+            self.table.selectRow(0)
+            self.update_detail_panel()
+        else:
+            self.detail_text.setText("扫描完成。没有发现预计可释放空间大于 0 的清理候选项。")
+
+    def _finish_clean(self):
+        summary = self._latest_cleanup_summary()
+        if summary is None:
+            self._clear_candidates_after_cleanup()
+            self.recommendation_label.setText("清理完成。候选项已清空，请重新扫描查看最新结果。")
+            return
+
+        message = cleanup_followup_message(
+            summary.removed_files,
+            summary.skipped_files,
+            summary.reclaimed_size,
+        )
+        if self._cleanup_had_skips(summary.skipped_files, summary.reclaimed_size):
+            self.clean_button.setEnabled(bool(self.candidates))
+            self.recommendation_label.setText(message)
+            self.detail_text.setText(f"{message}\n\n未实际释放空间的项目通常是被 Windows 保护、正在使用，或需要系统清理工具处理。")
+            return
+
+        self._clear_candidates_after_cleanup()
+        self.recommendation_label.setText(message)
+
+    def _latest_cleanup_summary(self):
+        for line in reversed(self.log_lines):
+            summary = parse_cleanup_summary(line)
+            if summary is not None:
+                return summary
+        return None
+
+    def _cleanup_had_skips(self, skipped_files: int, reclaimed_size: str) -> bool:
+        return skipped_files > 0 and parse_size_to_bytes(reclaimed_size) <= 0
 
     def _clear_candidates_after_cleanup(self):
         self.candidates.clear()

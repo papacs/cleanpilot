@@ -12,3 +12,10 @@ class CleanupCandidate:
     selected: bool = True
     status: str = "待处理"
     recommendation: str = ""
+
+
+@dataclass
+class CleanupSummary:
+    removed_files: int
+    skipped_files: int
+    reclaimed_size: str

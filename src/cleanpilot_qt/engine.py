@@ -3,13 +3,26 @@ import subprocess
 from pathlib import Path
 from typing import Callable, Iterable
 
-from .models import CleanupCandidate
+from .models import CleanupCandidate, CleanupSummary
 
 
 DRY_RUN_PATTERN = re.compile(
     r"DRY RUN:\s+(?P<name>.+?)\s+would remove\s+(?P<count>\d+)\s+files,\s+"
     r"estimated\s+(?P<size>.+?),\s+from\s+(?P<path>.+)$"
 )
+
+CLEANUP_SUMMARY_PATTERN = re.compile(
+    r"Cleanup completed\.\s+Removed files=(?P<removed>\d+),\s+"
+    r"skipped=(?P<skipped>\d+),\s+estimated reclaimed=(?P<reclaimed>.+)$"
+)
+
+SIZE_UNITS = {
+    "B": 1,
+    "KB": 1024,
+    "MB": 1024**2,
+    "GB": 1024**3,
+    "TB": 1024**4,
+}
 
 
 def build_powershell_command(
@@ -46,6 +59,19 @@ def classify_risk(name: str, path: str) -> str:
     return "安全"
 
 
+def parse_size_to_bytes(size_text: str) -> int:
+    parts = size_text.strip().split()
+    if not parts:
+        return 0
+    try:
+        value = float(parts[0].replace(",", ""))
+    except ValueError:
+        return 0
+    unit = parts[1].upper() if len(parts) > 1 else "B"
+    multiplier = SIZE_UNITS.get(unit, 1)
+    return int(value * multiplier)
+
+
 def parse_dry_run_line(line: str) -> CleanupCandidate | None:
     match = DRY_RUN_PATTERN.search(line)
     if not match:
@@ -53,6 +79,10 @@ def parse_dry_run_line(line: str) -> CleanupCandidate | None:
 
     name = match.group("name").strip()
     path = match.group("path").strip()
+    estimated_size = match.group("size").strip()
+    if parse_size_to_bytes(estimated_size) <= 0:
+        return None
+
     risk = classify_risk(name, path)
     selected = risk == "安全"
     recommendation = "建议清理" if selected else "建议先复核"
@@ -60,11 +90,30 @@ def parse_dry_run_line(line: str) -> CleanupCandidate | None:
         name=name,
         path=path,
         risk=risk,
-        estimated_size=match.group("size").strip(),
+        estimated_size=estimated_size,
         file_count=int(match.group("count")),
         selected=selected,
         recommendation=recommendation,
     )
+
+
+def parse_cleanup_summary(line: str) -> CleanupSummary | None:
+    match = CLEANUP_SUMMARY_PATTERN.search(line)
+    if not match:
+        return None
+    return CleanupSummary(
+        removed_files=int(match.group("removed")),
+        skipped_files=int(match.group("skipped")),
+        reclaimed_size=match.group("reclaimed").strip(),
+    )
+
+
+def cleanup_followup_message(removed_files: int, skipped_files: int, reclaimed_size: str) -> str:
+    if skipped_files > 0 and parse_size_to_bytes(reclaimed_size) <= 0:
+        return f"清理完成，但 {skipped_files} 个文件被系统跳过，未实际释放空间。建议查看日志，或重启后重新扫描。"
+    if skipped_files > 0:
+        return f"清理完成，预计释放 {reclaimed_size}；另有 {skipped_files} 个文件被系统跳过。"
+    return f"清理完成，预计释放 {reclaimed_size}。"
 
 
 def recommendation_for_candidates(
